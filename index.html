@@ -4,16 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>StitchCast - Hands-Free Craft Studio</title>
-  <link rel="icon" type="image/png" href="logo.png">
   <style>
     :root {
       --bg-black: #08080c;
       --card-bg: #12111a;
       --card-border: #232033;
       --lilac: #c9b6f5;
-      --lilac-dim: #7f6ea6;
       --pink: #f29bb2;
-      --pink-dim: #a6586d;
       --text-main: #fdfcff;
       --text-muted: #8e889f;
       --success: #6ee7b7;
@@ -26,7 +23,7 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: radial-gradient(circle at 50% 0%, #171526 0%, var(--bg-black) 70%);
       color: var(--text-main);
-      padding: 20px 14px;
+      padding: 16px 12px 32px 12px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -37,25 +34,23 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       text-align: center;
     }
 
     .logo-container {
-      width: 110px;
-      height: 110px;
-      margin: 0 auto 12px auto;
+      width: 100px;
+      height: 100px;
+      margin-bottom: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    .brand-logo {
+    .logo-container svg {
       width: 100%;
       height: 100%;
-      object-fit: contain;
-      border-radius: 20px;
-      filter: drop-shadow(0 6px 20px rgba(201, 182, 245, 0.22));
+      filter: drop-shadow(0 4px 16px rgba(201, 182, 245, 0.25));
     }
 
     h1 {
@@ -69,9 +64,9 @@
 
     .tagline {
       color: var(--text-muted);
-      font-size: 0.88rem;
+      font-size: 0.85rem;
       margin-top: 4px;
-      max-width: 340px;
+      max-width: 320px;
       line-height: 1.35;
     }
 
@@ -254,7 +249,7 @@
     .guide {
       width: 100%;
       max-width: 620px;
-      margin-top: 16px;
+      margin-top: 14px;
       font-size: 0.78rem;
       color: var(--text-muted);
       display: flex;
@@ -277,7 +272,25 @@
 
   <header>
     <div class="logo-container">
-      <img src="logo.png" alt="StitchCast Logo" class="brand-logo" onerror="this.src='minimalist-app-icon-logo--a-single-continuous-stra.png'">
+      <svg viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Knitting Needle (Lilac) -->
+        <line x1="160" y1="360" x2="235" y2="150" stroke="#c9b6f5" stroke-width="16" stroke-linecap="round"/>
+        <circle cx="242" cy="138" r="15" fill="#c9b6f5"/>
+        <polygon points="152,374 168,358 150,350" fill="#c9b6f5"/>
+
+        <!-- Crochet Hook (Pastel Rose Pink) -->
+        <line x1="345" y1="390" x2="435" y2="230" stroke="#f29bb2" stroke-width="16" stroke-linecap="round"/>
+        <path d="M435 230 C445 210 432 195 420 200 C410 205 408 215 415 224" fill="none" stroke="#f29bb2" stroke-width="16" stroke-linecap="round"/>
+
+        <!-- Continuous Yarn Thread (Play Triangle + Audio Wave) -->
+        <!-- Play Loop in Lilac -->
+        <path d="M 65 160 C 50 140 65 110 90 120 C 110 130 125 210 135 270 C 145 320 160 340 180 320 L 270 240 C 285 225 275 205 255 195 L 135 155 L 145 295" 
+              stroke="#c9b6f5" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+
+        <!-- Soundwave in Rose Pink -->
+        <path d="M 270 240 C 285 260 295 340 310 340 C 325 340 325 180 340 180 C 355 180 355 340 370 340 C 385 340 385 195 400 195 C 415 195 425 280 455 265" 
+              stroke="#f29bb2" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
     </div>
     <h1>StitchCast</h1>
     <p class="tagline">Hands-free voice remote & left-hand mirror for yarn craft tutorials</p>
@@ -350,13 +363,15 @@
         playerVars: {
           'playsinline': 1,
           'rel': 0,
-          'enablejsapi': 1,
-          'origin': window.location.origin
+          'enablejsapi': 1
         },
         events: {
-          'onReady': () => { isReady = true; },
+          'onReady': () => {
+            isReady = true;
+            player.cueVideoById('aAxGTnVNJiE');
+          },
           'onError': (e) => {
-            alert('Cannot embed this video (Code ' + e.data + '). The creator may have disabled embedding.');
+            console.warn('YouTube Error:', e.data);
           }
         }
       });
@@ -439,7 +454,7 @@
 
         recognition.onerror = (e) => {
           if (e.error !== 'no-speech') {
-            console.warn('Speech error:', e.error);
+            console.warn('Speech notice:', e.error);
           }
         };
 
