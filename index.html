@@ -1,164 +1,355 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StitchCast - Hands-Free Craft Video Player</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StitchCast - Hands-Free Craft Studio</title>
   <style>
     :root {
-      --bg-dark: #0f172a;
-      --card-bg: #1e293b;
-      --accent-pink: #ec4899;
-      --accent-hover: #db2777;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --success: #34d399;
+      --bg-black: #08080c;
+      --card-bg: #12111a;
+      --card-border: #232033;
+      --lilac: #c9b6f5;
+      --lilac-dim: #7f6ea6;
+      --pink: #f29bb2;
+      --pink-dim: #a6586d;
+      --text-main: #fdfcff;
+      --text-muted: #8e889f;
+      --success: #6ee7b7;
       --danger: #f87171;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: var(--bg-dark);
+      background: radial-gradient(circle at 50% 0%, #171526 0%, var(--bg-black) 70%);
       color: var(--text-main);
-      padding: 20px 14px;
+      padding: 16px 12px;
       display: flex;
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
     }
 
-    header { text-align: center; margin-bottom: 20px; }
-    h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; }
-    h1 span { color: var(--accent-pink); }
-    .tagline { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
-
-    .input-bar {
+    header {
       display: flex;
-      width: 100%;
-      max-width: 640px;
-      gap: 8px;
+      flex-direction: column;
+      align-items: center;
       margin-bottom: 16px;
+      text-align: center;
     }
+
+    .logo-container {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-container svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 0 12px rgba(201, 182, 245, 0.25));
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--lilac) 0%, var(--pink) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .tagline {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 4px;
+    }
+
+    .app-card {
+      width: 100%;
+      max-width: 620px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .url-input-group {
+      display: flex;
+      gap: 8px;
+    }
+
     input[type="text"] {
       flex: 1;
-      padding: 12px 14px;
-      border-radius: 8px;
-      border: 1px solid #334155;
-      background: var(--card-bg);
-      color: white;
+      padding: 11px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
+      background: #0d0c14;
+      color: #fff;
       font-size: 14px;
       outline: none;
+      transition: border-color 0.2s;
     }
-    input[type="text"]:focus { border-color: var(--accent-pink); }
+
+    input[type="text"]:focus {
+      border-color: var(--lilac);
+    }
 
     button {
-      padding: 10px 16px;
+      font-family: inherit;
+      padding: 10px 14px;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
+      font-size: 13.5px;
       font-weight: 600;
-      font-size: 14px;
       cursor: pointer;
-      transition: opacity 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform 0.1s, opacity 0.2s;
     }
-    button:active { opacity: 0.8; }
-    .btn-primary { background: var(--accent-pink); color: white; }
-    .btn-secondary { background: #334155; color: white; }
 
-    .player-wrapper {
+    button:active { transform: scale(0.97); }
+
+    .btn-gradient {
+      background: linear-gradient(135deg, var(--lilac) 0%, var(--pink) 100%);
+      color: #0b0a12;
+      font-weight: 700;
+    }
+
+    .btn-secondary {
+      background: #1c1a29;
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+    }
+
+    .btn-secondary:hover { background: #262338; }
+
+    .player-box {
       position: relative;
       width: 100%;
-      max-width: 640px;
       aspect-ratio: 16 / 9;
       background: #000;
       border-radius: 12px;
       overflow: hidden;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+      border: 1px solid #1a1726;
     }
-    #player { width: 100%; height: 100%; }
-    .mirrored { transform: scaleX(-1); }
 
-    .controls-row {
-      display: flex;
+    #player { width: 100%; height: 100%; }
+    .is-mirrored { transform: scaleX(-1); }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 10px;
+    }
+
+    /* Counter row */
+    .row-tracker {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #0d0c14;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 10px 14px;
+    }
+
+    .tracker-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--lilac);
+    }
+
+    .tracker-count {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--pink);
+      min-width: 48px;
+      text-align: center;
+    }
+
+    .tracker-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .tracker-btn {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      font-size: 18px;
+      border-radius: 8px;
+    }
+
+    /* Status Indicator */
+    .status-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: #0d0c14;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .status-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+    }
+
+    .indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      margin-right: 6px;
+    }
+
+    .indicator.active {
+      background: var(--pink);
+      box-shadow: 0 0 8px var(--pink);
+    }
+
+    .transcript-box {
+      font-size: 0.82rem;
+      color: var(--lilac);
+      font-style: italic;
+      min-height: 18px;
+    }
+
+    .vol-meter-bg {
+      width: 100%;
+      height: 4px;
+      background: #1b1928;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .vol-meter-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--lilac), var(--pink));
+      transition: width 0.08s ease;
+    }
+
+    .guide {
+      width: 100%;
+      max-width: 620px;
       margin-top: 14px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
       flex-wrap: wrap;
       justify-content: center;
+      gap: 8px;
     }
 
-    .status-msg {
-      margin-top: 12px;
-      font-size: 0.88rem;
-      font-weight: 500;
-      color: var(--text-muted);
-      text-align: center;
-      max-width: 600px;
-    }
-    .status-msg.active { color: var(--success); }
-    .status-msg.error { color: var(--danger); }
-
-    .command-guide {
-      margin-top: 24px;
-      padding: 14px;
-      background: var(--card-bg);
-      border-radius: 10px;
-      max-width: 640px;
-      width: 100%;
-      border: 1px solid #334155;
-    }
-    .command-guide h3 { font-size: 0.9rem; margin-bottom: 8px; color: var(--accent-pink); }
-    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-    .chip {
-      background: #0f172a;
-      padding: 6px 10px;
+    .guide-tag {
+      background: rgba(201, 182, 245, 0.08);
+      border: 1px solid rgba(201, 182, 245, 0.15);
       border-radius: 6px;
-      font-size: 0.8rem;
-      border: 1px solid #334155;
+      padding: 4px 8px;
     }
-    .chip b { color: white; }
+
+    .guide-tag b { color: var(--lilac); }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>Stitch<span>Cast</span></h1>
-    <p class="tagline">Hands-free voice control & left-hand mirroring for craft tutorials</p>
+    <div class="logo-container">
+      <!-- Embedded SVG recreation of your logo -->
+      <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Needle -->
+        <path d="M72 136L96 64" stroke="#c9b6f5" stroke-width="7" stroke-linecap="round"/>
+        <circle cx="99" cy="56" r="6" fill="#c9b6f5"/>
+        <!-- Crochet Hook -->
+        <path d="M136 142L166 84C168 80 165 74 158 76C153 77 150 82 153 87" stroke="#f29bb2" stroke-width="7" stroke-linecap="round"/>
+        <!-- Continuous Yarn Thread (Loop Play + Soundwave) -->
+        <path d="M38 72C33 67 42 58 45 68C48 80 62 120 72 124C88 130 114 98 114 98L62 68L70 120" stroke="#c9b6f5" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M114 98C117 108 122 136 126 136C130 136 130 82 136 82C142 82 142 136 148 136C154 136 156 104 162 108" stroke="#f29bb2" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h1>StitchCast</h1>
+    <p class="tagline">Hands-free voice remote & left-hand mirror for yarn craft tutorials</p>
   </header>
 
-  <div class="input-bar">
-    <input type="text" id="video-url" placeholder="Paste YouTube link (e.g. https://youtu.be/...)" />
-    <button class="btn-primary" onclick="loadUserVideo()">Load</button>
-  </div>
-
-  <div class="player-wrapper">
-    <div id="player"></div>
-  </div>
-
-  <div class="controls-row">
-    <button class="btn-secondary" id="mirror-btn" onclick="toggleMirror()">Flip Left-Hand View</button>
-    <button class="btn-primary" id="mic-btn" onclick="startVoice()">Enable Voice Control</button>
-  </div>
-
-  <p class="status-msg" id="status-box">Tap the video once on your screen, then click "Enable Voice Control".</p>
-
-  <div class="command-guide">
-    <h3>Voice Commands (Speak clearly)</h3>
-    <div class="chips">
-      <div class="chip">Say <b>"Pause"</b> or <b>"Stop"</b></div>
-      <div class="chip">Say <b>"Play"</b> or <b>"Continue"</b></div>
-      <div class="chip">Say <b>"Rewind"</b> (back 10s)</div>
-      <div class="chip">Say <b>"Forward"</b> (ahead 10s)</div>
-      <div class="chip">Say <b>"Mirror"</b> (flips video)</div>
+  <div class="app-card">
+    <div class="url-input-group">
+      <input type="text" id="video-url" placeholder="Paste YouTube link (crochet, knitting...)" />
+      <button class="btn-gradient" onclick="loadVideo()">Load</button>
     </div>
+
+    <div class="player-box">
+      <div id="player"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" id="mirror-btn" onclick="toggleMirror()">
+        <span>⇄</span> Mirror (Left-Hand)
+      </button>
+      <button class="btn-gradient" id="mic-btn" onclick="toggleMic()">
+        <span>🎙</span> Start Voice Control
+      </button>
+    </div>
+
+    <!-- Synced Row Counter -->
+    <div class="row-tracker">
+      <span class="tracker-title">ROW COUNTER</span>
+      <span class="tracker-count" id="row-count">0</span>
+      <div class="tracker-actions">
+        <button class="btn-secondary tracker-btn" onclick="changeRow(-1)">−</button>
+        <button class="btn-secondary tracker-btn" onclick="changeRow(1)">+</button>
+      </div>
+    </div>
+
+    <!-- Status & Audio Level -->
+    <div class="status-panel">
+      <div class="status-top">
+        <div><span class="indicator" id="mic-dot"></span><span id="mic-label">Mic Standby</span></div>
+        <span style="color: var(--text-muted);" id="engine-status">Tap "Start Voice Control" to enable</span>
+      </div>
+      <div class="transcript-box" id="transcript-box">Awaiting voice command...</div>
+      <div class="vol-meter-bg">
+        <div class="vol-meter-fill" id="meter-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="guide">
+    <div class="guide-tag">Say <b>"Play"</b> / <b>"Start"</b></div>
+    <div class="guide-tag">Say <b>"Pause"</b> / <b>"Stop"</b></div>
+    <div class="guide-tag">Say <b>"Rewind"</b> (back 10s)</div>
+    <div class="guide-tag">Say <b>"Forward"</b> (jump 10s)</div>
+    <div class="guide-tag">Say <b>"Next Row"</b> / <b>"Row Back"</b></div>
+    <div class="guide-tag">Say <b>"Mirror"</b> (left-hand toggle)</div>
   </div>
 
   <script src="https://www.youtube.com/iframe_api"></script>
   <script>
     let player;
+    let isReady = false;
     let isMirrored = false;
+    let isListening = false;
     let recognition;
-    let isPlayerReady = false;
+    let rowNumber = 0;
+    let audioContext, analyser, microphone, animFrame;
 
+    // Default beginner crochet video
     function onYouTubeIframeAPIReady() {
       player = new YT.Player('player', {
         videoId: 'aAxGTnVNJiE',
@@ -169,120 +360,167 @@
           'origin': window.location.origin
         },
         events: {
-          'onReady': () => { isPlayerReady = true; },
-          'onError': onPlayerError
+          'onReady': () => { isReady = true; },
+          'onError': (e) => {
+            alert('Cannot embed this video (Code ' + e.data + '). The creator may have disabled third-party embedding.');
+          }
         }
       });
     }
 
-    function onPlayerError(e) {
-      const status = document.getElementById('status-box');
-      status.classList.remove('active');
-      status.classList.add('error');
-      if (e.data === 101 || e.data === 150) {
-        status.innerText = "Error: The owner of this tutorial has blocked external website embedding. Please try a different tutorial link.";
-      } else {
-        status.innerText = "Error loading video (Code: " + e.data + "). Check the URL.";
-      }
-    }
-
     function extractVideoId(url) {
-      if (!url) return null;
-      // Handles standard, short (youtu.be), shorts, and embed URLs
-      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
-      const match = url.match(regExp);
+      const match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/);
       return (match && match[2].length === 11) ? match[2] : null;
     }
 
-    function loadUserVideo() {
+    function loadVideo() {
       const url = document.getElementById('video-url').value.trim();
-      const videoId = extractVideoId(url);
-      const status = document.getElementById('status-box');
-
-      if (!videoId) {
-        status.classList.add('error');
-        status.innerText = "Invalid link. Please paste a full YouTube URL or youtu.be link.";
+      const id = extractVideoId(url);
+      if (!id) {
+        alert("Please enter a valid YouTube link.");
         return;
       }
-
-      if (isPlayerReady && player && player.cueVideoById) {
-        status.classList.remove('error');
-        status.innerText = "Loading tutorial...";
-        player.cueVideoById(videoId);
+      if (player && player.cueVideoById) {
+        player.cueVideoById(id);
       }
     }
 
     function toggleMirror() {
       isMirrored = !isMirrored;
-      const iframe = document.querySelector('.player-wrapper iframe');
-      if (iframe) {
-        iframe.classList.toggle('mirrored', isMirrored);
-      }
-      document.getElementById('mirror-btn').innerText = isMirrored ? "Reset Normal View" : "Flip Left-Hand View";
+      const iframe = document.querySelector('.player-box iframe');
+      if (iframe) iframe.classList.toggle('is-mirrored', isMirrored);
+      document.getElementById('mirror-btn').innerText = isMirrored ? "Reset Normal View" : "⇄ Mirror (Left-Hand)";
     }
 
-    function startVoice() {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const status = document.getElementById('status-box');
+    function changeRow(delta) {
+      rowNumber = Math.max(0, rowNumber + delta);
+      document.getElementById('row-count').innerText = rowNumber;
+    }
 
-      if (!SpeechRecognition) {
-        status.classList.add('error');
-        status.innerText = "Voice recognition requires Google Chrome or Safari on HTTPS.";
+    async function toggleMic() {
+      if (isListening) {
+        stopMic();
+      } else {
+        await startMic();
+      }
+    }
+
+    async function startMic() {
+      const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!Speech) {
+        alert("Voice recognition is not supported in this browser. Please use Chrome, Edge, or Safari.");
         return;
       }
 
-      if (recognition) {
-        recognition.abort();
-      }
-
-      recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = false;
-      recognition.lang = 'en-US';
-
-      recognition.onstart = () => {
-        status.classList.remove('error');
-        status.classList.add('active');
-        status.innerText = "Listening... Say 'Pause', 'Play', 'Rewind', or 'Mirror'";
-        document.getElementById('mic-btn').innerText = "Mic Active";
-      };
-
-      recognition.onresult = (event) => {
-        const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
-        status.innerText = `Heard: "${transcript}"`;
-
-        if (!isPlayerReady || !player) return;
-
-        if (transcript.includes("pause") || transcript.includes("stop")) {
-          player.pauseVideo();
-        } else if (transcript.includes("play") || transcript.includes("start") || transcript.includes("continue")) {
-          player.playVideo();
-        } else if (transcript.includes("rewind") || transcript.includes("back")) {
-          const curr = player.getCurrentTime ? player.getCurrentTime() : 0;
-          player.seekTo(Math.max(0, curr - 10), true);
-        } else if (transcript.includes("forward") || transcript.includes("ahead")) {
-          const curr = player.getCurrentTime ? player.getCurrentTime() : 0;
-          player.seekTo(curr + 10, true);
-        } else if (transcript.includes("mirror") || transcript.includes("flip")) {
-          toggleMirror();
-        }
-      };
-
-      recognition.onerror = (e) => {
-        if (e.error !== 'no-speech') {
-          console.warn("Speech recognition notice:", e.error);
-        }
-      };
-
-      recognition.onend = () => {
-        // Auto-reconnect if it times out
-        try { recognition.start(); } catch (err) {}
-      };
-
       try {
+        // Unlock mobile microphone permissions explicitly
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+        // Start visual audio meter
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        microphone = audioContext.createMediaStreamSource(stream);
+        microphone.connect(analyser);
+        analyser.fftSize = 64;
+        monitorAudio();
+
+        recognition = new Speech();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = () => {
+          isListening = true;
+          document.getElementById('mic-dot').classList.add('active');
+          document.getElementById('mic-label').innerText = "Listening actively";
+          document.getElementById('engine-status').innerText = "Hands-free active";
+          document.getElementById('mic-btn').innerText = "⏹ Stop Voice Control";
+        };
+
+        recognition.onresult = (event) => {
+          let latest = '';
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            latest += event.results[i][0].transcript;
+          }
+          handleVoiceCommand(latest.trim().toLowerCase());
+        };
+
+        recognition.onerror = (e) => {
+          if (e.error !== 'no-speech') {
+            console.warn('Speech error:', e.error);
+          }
+        };
+
+        recognition.onend = () => {
+          // Restart loop if user hasn't manually pressed stop
+          if (isListening) {
+            try { recognition.start(); } catch (err) {}
+          }
+        };
+
         recognition.start();
+
       } catch (err) {
-        console.error(err);
+        alert("Microphone permission was denied. Please allow microphone access in your browser settings.");
+      }
+    }
+
+    function stopMic() {
+      isListening = false;
+      if (recognition) recognition.stop();
+      if (audioContext) audioContext.close();
+      if (animFrame) cancelAnimationFrame(animFrame);
+
+      document.getElementById('mic-dot').classList.remove('active');
+      document.getElementById('mic-label').innerText = "Mic Standby";
+      document.getElementById('engine-status').innerText = "Paused";
+      document.getElementById('mic-btn').innerText = "🎙 Start Voice Control";
+      document.getElementById('meter-fill').style.width = '0%';
+    }
+
+    function monitorAudio() {
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(dataArray);
+      let sum = 0;
+      for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+      let avg = sum / dataArray.length;
+      document.getElementById('meter-fill').style.width = Math.min(100, avg * 2.5) + '%';
+      if (isListening) animFrame = requestAnimationFrame(monitorAudio);
+    }
+
+    let lastCommandTime = 0;
+    function handleVoiceCommand(cmd) {
+      document.getElementById('transcript-box').innerText = `Heard: "${cmd}"`;
+
+      // Prevent duplicate triggers in rapid succession (1.2s debounce)
+      const now = Date.now();
+      if (now - lastCommandTime < 1200) return;
+
+      if (!isReady || !player) return;
+
+      if (cmd.includes("pause") || cmd.includes("stop")) {
+        player.pauseVideo();
+        lastCommandTime = now;
+      } else if (cmd.includes("play") || cmd.includes("start") || cmd.includes("continue")) {
+        player.playVideo();
+        lastCommandTime = now;
+      } else if (cmd.includes("rewind") || cmd.includes("back") || cmd.includes("again")) {
+        const t = player.getCurrentTime ? player.getCurrentTime() : 0;
+        player.seekTo(Math.max(0, t - 10), true);
+        lastCommandTime = now;
+      } else if (cmd.includes("forward") || cmd.includes("ahead")) {
+        const t = player.getCurrentTime ? player.getCurrentTime() : 0;
+        player.seekTo(t + 10, true);
+        lastCommandTime = now;
+      } else if (cmd.includes("next row") || cmd.includes("new row")) {
+        changeRow(1);
+        lastCommandTime = now;
+      } else if (cmd.includes("row back") || cmd.includes("previous row")) {
+        changeRow(-1);
+        lastCommandTime = now;
+      } else if (cmd.includes("mirror") || cmd.includes("flip")) {
+        toggleMirror();
+        lastCommandTime = now;
       }
     }
   </script>
