@@ -143,9 +143,7 @@
       margin-top: 2px;
     }
 
-    .btn-share:hover {
-      background: rgba(201, 182, 245, 0.15);
-    }
+    .btn-share:hover { background: rgba(201, 182, 245, 0.15); }
 
     .player-box {
       position: relative;
@@ -164,6 +162,42 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
+    }
+
+    /* Sound Control Bar */
+    .sound-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: #0d0c14;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 8px 14px;
+    }
+
+    .sound-bar label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--lilac);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sound-bar input[type="range"] {
+      flex: 1;
+      accent-color: var(--pink);
+      cursor: pointer;
+    }
+
+    .btn-small {
+      padding: 6px 10px;
+      font-size: 12px;
+      border-radius: 6px;
+      background: #1c1a29;
+      color: var(--pink);
+      border: 1px solid var(--card-border);
     }
 
     /* Row Counter */
@@ -285,20 +319,16 @@
   <header>
     <div class="logo-container">
       <svg viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Needle -->
         <line x1="160" y1="360" x2="235" y2="150" stroke="#c9b6f5" stroke-width="16" stroke-linecap="round"/>
         <circle cx="242" cy="138" r="15" fill="#c9b6f5"/>
         <polygon points="152,374 168,358 150,350" fill="#c9b6f5"/>
 
-        <!-- Hook -->
         <line x1="345" y1="390" x2="435" y2="230" stroke="#f29bb2" stroke-width="16" stroke-linecap="round"/>
         <path d="M435 230 C445 210 432 195 420 200 C410 205 408 215 415 224" fill="none" stroke="#f29bb2" stroke-width="16" stroke-linecap="round"/>
 
-        <!-- Play Loop -->
         <path d="M 65 160 C 50 140 65 110 90 120 C 110 130 125 210 135 270 C 145 320 160 340 180 320 L 270 240 C 285 225 275 205 255 195 L 135 155 L 145 295" 
               stroke="#c9b6f5" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
 
-        <!-- Soundwave -->
         <path d="M 270 240 C 285 260 295 340 310 340 C 325 340 325 180 340 180 C 355 180 355 340 370 340 C 385 340 385 195 400 195 C 415 195 425 280 455 265" 
               stroke="#f29bb2" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
@@ -315,6 +345,13 @@
 
     <div class="player-box">
       <div id="player"></div>
+    </div>
+
+    <!-- Video Volume Control -->
+    <div class="sound-bar">
+      <label for="vol-slider"><span>🔊</span> Video Volume</label>
+      <input type="range" id="vol-slider" min="0" max="100" value="100" oninput="setVideoVolume(this.value)" />
+      <button class="btn-small" onclick="boostVolume()">Max 100%</button>
     </div>
 
     <div class="btn-row">
@@ -359,6 +396,7 @@
     <div class="guide-tag">Say <b>"Pause"</b> / <b>"Stop"</b></div>
     <div class="guide-tag">Say <b>"Rewind"</b> (back 10s)</div>
     <div class="guide-tag">Say <b>"Forward"</b> (jump 10s)</div>
+    <div class="guide-tag">Say <b>"Volume Up"</b> / <b>"Louder"</b></div>
     <div class="guide-tag">Say <b>"Next Row"</b> / <b>"Row Back"</b></div>
     <div class="guide-tag">Say <b>"Mirror"</b> (left-hand toggle)</div>
   </div>
@@ -384,7 +422,15 @@
         events: {
           'onReady': () => {
             isReady = true;
+            // Force full audio output
+            boostVolume();
             player.cueVideoById('aAxGTnVNJiE');
+          },
+          'onStateChange': (e) => {
+            // Whenever video plays, make sure volume stays at 100%
+            if (e.data === YT.PlayerState.PLAYING) {
+              boostVolume();
+            }
           },
           'onError': (e) => {
             console.warn('YouTube Error:', e.data);
@@ -407,6 +453,22 @@
       }
       if (player && player.cueVideoById) {
         player.cueVideoById(id);
+        boostVolume();
+      }
+    }
+
+    function setVideoVolume(val) {
+      if (player && player.setVolume) {
+        player.unMute();
+        player.setVolume(val);
+      }
+    }
+
+    function boostVolume() {
+      if (player && player.setVolume) {
+        player.unMute();
+        player.setVolume(100);
+        document.getElementById('vol-slider').value = 100;
       }
     }
 
@@ -432,19 +494,14 @@
       if (navigator.share) {
         try {
           await navigator.share(shareData);
-        } catch (err) {
-          // User dismissed share dialog
-        }
+        } catch (err) {}
       } else {
-        // Fallback: Copy link to clipboard
         try {
           await navigator.clipboard.writeText(window.location.href);
           const btn = document.getElementById('share-btn');
           const originalText = btn.innerHTML;
           btn.innerHTML = '<span>✓</span> Link Copied to Clipboard!';
-          setTimeout(() => {
-            btn.innerHTML = originalText;
-          }, 2500);
+          setTimeout(() => { btn.innerHTML = originalText; }, 2500);
         } catch (err) {
           alert('Share this link: ' + window.location.href);
         }
@@ -553,6 +610,7 @@
         lastCommandTime = now;
       } else if (cmd.includes("play") || cmd.includes("start") || cmd.includes("continue")) {
         player.playVideo();
+        boostVolume();
         lastCommandTime = now;
       } else if (cmd.includes("rewind") || cmd.includes("back") || cmd.includes("again")) {
         const t = player.getCurrentTime ? player.getCurrentTime() : 0;
@@ -561,6 +619,9 @@
       } else if (cmd.includes("forward") || cmd.includes("ahead")) {
         const t = player.getCurrentTime ? player.getCurrentTime() : 0;
         player.seekTo(t + 10, true);
+        lastCommandTime = now;
+      } else if (cmd.includes("volume up") || cmd.includes("louder") || cmd.includes("max volume")) {
+        boostVolume();
         lastCommandTime = now;
       } else if (cmd.includes("next row") || cmd.includes("new row")) {
         changeRow(1);
