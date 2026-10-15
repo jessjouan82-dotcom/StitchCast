@@ -164,7 +164,7 @@
       gap: 10px;
     }
 
-    /* Sound Control Bar */
+    /* Sound Bar */
     .sound-bar {
       display: flex;
       align-items: center;
@@ -211,10 +211,21 @@
       padding: 10px 14px;
     }
 
+    .tracker-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
     .tracker-title {
       font-size: 0.85rem;
       font-weight: 600;
       color: var(--lilac);
+    }
+
+    .save-indicator {
+      font-size: 0.72rem;
+      color: var(--success);
     }
 
     .tracker-count {
@@ -363,9 +374,12 @@
       </button>
     </div>
 
-    <!-- Synced Row Counter -->
+    <!-- Synced Row Counter (Auto-Saves) -->
     <div class="row-tracker">
-      <span class="tracker-title">ROW COUNTER</span>
+      <div class="tracker-left">
+        <span class="tracker-title">ROW COUNTER</span>
+        <span class="save-indicator">● Auto-Saved</span>
+      </div>
       <span class="tracker-count" id="row-count">0</span>
       <div class="tracker-actions">
         <button class="btn-secondary tracker-btn" onclick="changeRow(-1)">−</button>
@@ -395,9 +409,9 @@
     <div class="guide-tag">Say <b>"Play"</b> / <b>"Start"</b></div>
     <div class="guide-tag">Say <b>"Pause"</b> / <b>"Stop"</b></div>
     <div class="guide-tag">Say <b>"Rewind"</b> (back 10s)</div>
-    <div class="guide-tag">Say <b>"Forward"</b> (jump 10s)</div>
-    <div class="guide-tag">Say <b>"Volume Up"</b> / <b>"Louder"</b></div>
     <div class="guide-tag">Say <b>"Next Row"</b> / <b>"Row Back"</b></div>
+    <div class="guide-tag">Say <b>"Reset Counter"</b> (clears to 0)</div>
+    <div class="guide-tag">Say <b>"Volume Up"</b> / <b>"Louder"</b></div>
     <div class="guide-tag">Say <b>"Mirror"</b> (left-hand toggle)</div>
   </div>
 
@@ -408,12 +422,23 @@
     let isMirrored = false;
     let isListening = false;
     let recognition;
-    let rowNumber = 0;
     let audioContext, analyser, microphone, animFrame;
+
+    // Load saved row counter from device storage (or default to 0)
+    let savedRow = localStorage.getItem('stitchcast_row');
+    let rowNumber = savedRow !== null ? parseInt(savedRow, 10) : 0;
+
+    // Load saved video ID (or default beginner tutorial)
+    let currentVideoId = localStorage.getItem('stitchcast_video_id') || 'aAxGTnVNJiE';
+
+    // Show saved row immediately on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('row-count').innerText = rowNumber;
+    });
 
     function onYouTubeIframeAPIReady() {
       player = new YT.Player('player', {
-        videoId: 'aAxGTnVNJiE',
+        videoId: currentVideoId,
         playerVars: {
           'playsinline': 1,
           'rel': 0,
@@ -422,12 +447,10 @@
         events: {
           'onReady': () => {
             isReady = true;
-            // Force full audio output
             boostVolume();
-            player.cueVideoById('aAxGTnVNJiE');
+            player.cueVideoById(currentVideoId);
           },
           'onStateChange': (e) => {
-            // Whenever video plays, make sure volume stays at 100%
             if (e.data === YT.PlayerState.PLAYING) {
               boostVolume();
             }
@@ -451,6 +474,10 @@
         alert("Please enter a valid YouTube link.");
         return;
       }
+      currentVideoId = id;
+      // Save video link so user never loses it on refresh
+      localStorage.setItem('stitchcast_video_id', currentVideoId);
+
       if (player && player.cueVideoById) {
         player.cueVideoById(id);
         boostVolume();
@@ -482,6 +509,14 @@
     function changeRow(delta) {
       rowNumber = Math.max(0, rowNumber + delta);
       document.getElementById('row-count').innerText = rowNumber;
+      // Persist directly to device memory
+      localStorage.setItem('stitchcast_row', rowNumber);
+    }
+
+    function resetRowCounter() {
+      rowNumber = 0;
+      document.getElementById('row-count').innerText = 0;
+      localStorage.setItem('stitchcast_row', 0);
     }
 
     async function shareApp() {
@@ -628,6 +663,9 @@
         lastCommandTime = now;
       } else if (cmd.includes("row back") || cmd.includes("previous row")) {
         changeRow(-1);
+        lastCommandTime = now;
+      } else if (cmd.includes("reset counter") || cmd.includes("clear counter")) {
+        resetRowCounter();
         lastCommandTime = now;
       } else if (cmd.includes("mirror") || cmd.includes("flip")) {
         toggleMirror();
