@@ -13,6 +13,7 @@
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
       --success: #34d399;
+      --danger: #f87171;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -20,55 +21,54 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background-color: var(--bg-dark);
       color: var(--text-main);
-      padding: 24px 16px;
+      padding: 20px 14px;
       display: flex;
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
     }
 
-    header { text-align: center; margin-bottom: 24px; }
-    h1 { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.5px; }
+    header { text-align: center; margin-bottom: 20px; }
+    h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; }
     h1 span { color: var(--accent-pink); }
-    .tagline { color: var(--text-muted); font-size: 0.95rem; margin-top: 6px; }
+    .tagline { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
 
     .input-bar {
       display: flex;
       width: 100%;
-      max-width: 680px;
+      max-width: 640px;
       gap: 8px;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
     input[type="text"] {
       flex: 1;
-      padding: 12px 16px;
+      padding: 12px 14px;
       border-radius: 8px;
       border: 1px solid #334155;
       background: var(--card-bg);
       color: white;
-      font-size: 15px;
+      font-size: 14px;
       outline: none;
     }
     input[type="text"]:focus { border-color: var(--accent-pink); }
 
     button {
-      padding: 12px 18px;
+      padding: 10px 16px;
       border: none;
       border-radius: 8px;
       font-weight: 600;
       font-size: 14px;
       cursor: pointer;
-      transition: background 0.2s ease;
+      transition: opacity 0.2s;
     }
+    button:active { opacity: 0.8; }
     .btn-primary { background: var(--accent-pink); color: white; }
-    .btn-primary:hover { background: var(--accent-hover); }
     .btn-secondary { background: #334155; color: white; }
-    .btn-secondary:hover { background: #475569; }
 
     .player-wrapper {
       position: relative;
       width: 100%;
-      max-width: 680px;
+      max-width: 640px;
       aspect-ratio: 16 / 9;
       background: #000;
       border-radius: 12px;
@@ -80,37 +80,39 @@
 
     .controls-row {
       display: flex;
-      gap: 12px;
-      margin-top: 16px;
+      gap: 10px;
+      margin-top: 14px;
       flex-wrap: wrap;
       justify-content: center;
     }
 
-    .mic-status {
-      margin-top: 14px;
-      font-size: 0.9rem;
+    .status-msg {
+      margin-top: 12px;
+      font-size: 0.88rem;
       font-weight: 500;
       color: var(--text-muted);
-      min-height: 24px;
+      text-align: center;
+      max-width: 600px;
     }
-    .mic-status.active { color: var(--success); }
+    .status-msg.active { color: var(--success); }
+    .status-msg.error { color: var(--danger); }
 
     .command-guide {
-      margin-top: 32px;
-      padding: 16px;
+      margin-top: 24px;
+      padding: 14px;
       background: var(--card-bg);
       border-radius: 10px;
-      max-width: 680px;
+      max-width: 640px;
       width: 100%;
       border: 1px solid #334155;
     }
-    .command-guide h3 { font-size: 0.95rem; margin-bottom: 10px; color: var(--accent-pink); }
-    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .command-guide h3 { font-size: 0.9rem; margin-bottom: 8px; color: var(--accent-pink); }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
     .chip {
       background: #0f172a;
-      padding: 6px 12px;
+      padding: 6px 10px;
       border-radius: 6px;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       border: 1px solid #334155;
     }
     .chip b { color: white; }
@@ -124,8 +126,8 @@
   </header>
 
   <div class="input-bar">
-    <input type="text" id="video-url" placeholder="Paste any YouTube tutorial URL here..." />
-    <button class="btn-primary" onclick="loadUserVideo()">Load Tutorial</button>
+    <input type="text" id="video-url" placeholder="Paste YouTube link (e.g. https://youtu.be/...)" />
+    <button class="btn-primary" onclick="loadUserVideo()">Load</button>
   </div>
 
   <div class="player-wrapper">
@@ -137,16 +139,16 @@
     <button class="btn-primary" id="mic-btn" onclick="startVoice()">Enable Voice Control</button>
   </div>
 
-  <p class="mic-status" id="mic-status">Click "Enable Voice Control" to start</p>
+  <p class="status-msg" id="status-box">Tap the video once on your screen, then click "Enable Voice Control".</p>
 
   <div class="command-guide">
-    <h3>Available Voice Commands</h3>
+    <h3>Voice Commands (Speak clearly)</h3>
     <div class="chips">
       <div class="chip">Say <b>"Pause"</b> or <b>"Stop"</b></div>
       <div class="chip">Say <b>"Play"</b> or <b>"Continue"</b></div>
-      <div class="chip">Say <b>"Rewind"</b> (goes back 10s)</div>
-      <div class="chip">Say <b>"Forward"</b> (jumps ahead 10s)</div>
-      <div class="chip">Say <b>"Mirror"</b> (toggles left-hand view)</div>
+      <div class="chip">Say <b>"Rewind"</b> (back 10s)</div>
+      <div class="chip">Say <b>"Forward"</b> (ahead 10s)</div>
+      <div class="chip">Say <b>"Mirror"</b> (flips video)</div>
     </div>
   </div>
 
@@ -155,17 +157,39 @@
     let player;
     let isMirrored = false;
     let recognition;
+    let isPlayerReady = false;
 
-    // Load default beginner crochet tutorial
     function onYouTubeIframeAPIReady() {
       player = new YT.Player('player', {
         videoId: 'aAxGTnVNJiE',
-        playerVars: { 'playsinline': 1 }
+        playerVars: {
+          'playsinline': 1,
+          'rel': 0,
+          'enablejsapi': 1,
+          'origin': window.location.origin
+        },
+        events: {
+          'onReady': () => { isPlayerReady = true; },
+          'onError': onPlayerError
+        }
       });
     }
 
+    function onPlayerError(e) {
+      const status = document.getElementById('status-box');
+      status.classList.remove('active');
+      status.classList.add('error');
+      if (e.data === 101 || e.data === 150) {
+        status.innerText = "Error: The owner of this tutorial has blocked external website embedding. Please try a different tutorial link.";
+      } else {
+        status.innerText = "Error loading video (Code: " + e.data + "). Check the URL.";
+      }
+    }
+
     function extractVideoId(url) {
-      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+      if (!url) return null;
+      // Handles standard, short (youtu.be), shorts, and embed URLs
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
       const match = url.match(regExp);
       return (match && match[2].length === 11) ? match[2] : null;
     }
@@ -173,10 +197,18 @@
     function loadUserVideo() {
       const url = document.getElementById('video-url').value.trim();
       const videoId = extractVideoId(url);
-      if (videoId && player && player.loadVideoById) {
-        player.loadVideoById(videoId);
-      } else {
-        alert("Please paste a valid YouTube video link.");
+      const status = document.getElementById('status-box');
+
+      if (!videoId) {
+        status.classList.add('error');
+        status.innerText = "Invalid link. Please paste a full YouTube URL or youtu.be link.";
+        return;
+      }
+
+      if (isPlayerReady && player && player.cueVideoById) {
+        status.classList.remove('error');
+        status.innerText = "Loading tutorial...";
+        player.cueVideoById(videoId);
       }
     }
 
@@ -191,13 +223,16 @@
 
     function startVoice() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const status = document.getElementById('status-box');
+
       if (!SpeechRecognition) {
-        alert("Voice recognition is not supported in this browser. Please use Chrome or Edge.");
+        status.classList.add('error');
+        status.innerText = "Voice recognition requires Google Chrome or Safari on HTTPS.";
         return;
       }
 
       if (recognition) {
-        recognition.stop();
+        recognition.abort();
       }
 
       recognition = new SpeechRecognition();
@@ -206,40 +241,49 @@
       recognition.lang = 'en-US';
 
       recognition.onstart = () => {
-        const status = document.getElementById('mic-status');
-        status.innerText = "Listening... Speak a command clearly.";
+        status.classList.remove('error');
         status.classList.add('active');
+        status.innerText = "Listening... Say 'Pause', 'Play', 'Rewind', or 'Mirror'";
         document.getElementById('mic-btn').innerText = "Mic Active";
       };
 
       recognition.onresult = (event) => {
         const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
-        const status = document.getElementById('mic-status');
         status.innerText = `Heard: "${transcript}"`;
+
+        if (!isPlayerReady || !player) return;
 
         if (transcript.includes("pause") || transcript.includes("stop")) {
           player.pauseVideo();
         } else if (transcript.includes("play") || transcript.includes("start") || transcript.includes("continue")) {
           player.playVideo();
         } else if (transcript.includes("rewind") || transcript.includes("back")) {
-          player.seekTo(player.getCurrentTime() - 10, true);
+          const curr = player.getCurrentTime ? player.getCurrentTime() : 0;
+          player.seekTo(Math.max(0, curr - 10), true);
         } else if (transcript.includes("forward") || transcript.includes("ahead")) {
-          player.seekTo(player.getCurrentTime() + 10, true);
+          const curr = player.getCurrentTime ? player.getCurrentTime() : 0;
+          player.seekTo(curr + 10, true);
         } else if (transcript.includes("mirror") || transcript.includes("flip")) {
           toggleMirror();
         }
       };
 
       recognition.onerror = (e) => {
-        console.error("Speech error:", e);
+        if (e.error !== 'no-speech') {
+          console.warn("Speech recognition notice:", e.error);
+        }
       };
 
       recognition.onend = () => {
-        // Auto-restart to keep listening continuously while crafting
+        // Auto-reconnect if it times out
         try { recognition.start(); } catch (err) {}
       };
 
-      recognition.start();
+      try {
+        recognition.start();
+      } catch (err) {
+        console.error(err);
+      }
     }
   </script>
 </body>
