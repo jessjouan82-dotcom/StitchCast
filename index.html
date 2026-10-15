@@ -164,42 +164,6 @@
       gap: 10px;
     }
 
-    /* Sound Bar */
-    .sound-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      background: #0d0c14;
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 8px 14px;
-    }
-
-    .sound-bar label {
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--lilac);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .sound-bar input[type="range"] {
-      flex: 1;
-      accent-color: var(--pink);
-      cursor: pointer;
-    }
-
-    .btn-small {
-      padding: 6px 10px;
-      font-size: 12px;
-      border-radius: 6px;
-      background: #1c1a29;
-      color: var(--pink);
-      border: 1px solid var(--card-border);
-    }
-
     /* Row Counter */
     .row-tracker {
       display: flex;
@@ -249,7 +213,7 @@
       border-radius: 8px;
     }
 
-    /* Status & Mic Panel */
+    /* Status Panel */
     .status-panel {
       display: flex;
       flex-direction: column;
@@ -286,21 +250,6 @@
       color: var(--lilac);
       font-style: italic;
       min-height: 18px;
-    }
-
-    .vol-meter-bg {
-      width: 100%;
-      height: 4px;
-      background: #1b1928;
-      border-radius: 2px;
-      overflow: hidden;
-    }
-
-    .vol-meter-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, var(--lilac), var(--pink));
-      transition: width 0.08s ease;
     }
 
     .guide {
@@ -358,13 +307,6 @@
       <div id="player"></div>
     </div>
 
-    <!-- Video Volume Control -->
-    <div class="sound-bar">
-      <label for="vol-slider"><span>🔊</span> Video Volume</label>
-      <input type="range" id="vol-slider" min="0" max="100" value="100" oninput="setVideoVolume(this.value)" />
-      <button class="btn-small" onclick="boostVolume()">Max 100%</button>
-    </div>
-
     <div class="btn-row">
       <button class="btn-secondary" id="mirror-btn" onclick="toggleMirror()">
         <span>⇄</span> Mirror (Left-Hand)
@@ -374,7 +316,7 @@
       </button>
     </div>
 
-    <!-- Synced Row Counter (Auto-Saves) -->
+    <!-- Synced Row Counter (Auto-Saved) -->
     <div class="row-tracker">
       <div class="tracker-left">
         <span class="tracker-title">ROW COUNTER</span>
@@ -392,16 +334,13 @@
       <span>↗</span> Share StitchCast with Crafters
     </button>
 
-    <!-- Status & Audio Level -->
+    <!-- Status -->
     <div class="status-panel">
       <div class="status-top">
         <div><span class="indicator" id="mic-dot"></span><span id="mic-label">Mic Standby</span></div>
         <span style="color: var(--text-muted);" id="engine-status">Tap "Start Voice Control" to enable</span>
       </div>
       <div class="transcript-box" id="transcript-box">Awaiting voice command...</div>
-      <div class="vol-meter-bg">
-        <div class="vol-meter-fill" id="meter-fill"></div>
-      </div>
     </div>
   </div>
 
@@ -411,7 +350,6 @@
     <div class="guide-tag">Say <b>"Rewind"</b> (back 10s)</div>
     <div class="guide-tag">Say <b>"Next Row"</b> / <b>"Row Back"</b></div>
     <div class="guide-tag">Say <b>"Reset Counter"</b> (clears to 0)</div>
-    <div class="guide-tag">Say <b>"Volume Up"</b> / <b>"Louder"</b></div>
     <div class="guide-tag">Say <b>"Mirror"</b> (left-hand toggle)</div>
   </div>
 
@@ -422,16 +360,11 @@
     let isMirrored = false;
     let isListening = false;
     let recognition;
-    let audioContext, analyser, microphone, animFrame;
 
-    // Load saved row counter from device storage (or default to 0)
     let savedRow = localStorage.getItem('stitchcast_row');
     let rowNumber = savedRow !== null ? parseInt(savedRow, 10) : 0;
-
-    // Load saved video ID (or default beginner tutorial)
     let currentVideoId = localStorage.getItem('stitchcast_video_id') || 'aAxGTnVNJiE';
 
-    // Show saved row immediately on page load
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('row-count').innerText = rowNumber;
     });
@@ -447,13 +380,6 @@
         events: {
           'onReady': () => {
             isReady = true;
-            boostVolume();
-            player.cueVideoById(currentVideoId);
-          },
-          'onStateChange': (e) => {
-            if (e.data === YT.PlayerState.PLAYING) {
-              boostVolume();
-            }
           },
           'onError': (e) => {
             console.warn('YouTube Error:', e.data);
@@ -475,27 +401,10 @@
         return;
       }
       currentVideoId = id;
-      // Save video link so user never loses it on refresh
       localStorage.setItem('stitchcast_video_id', currentVideoId);
 
-      if (player && player.cueVideoById) {
-        player.cueVideoById(id);
-        boostVolume();
-      }
-    }
-
-    function setVideoVolume(val) {
-      if (player && player.setVolume) {
-        player.unMute();
-        player.setVolume(val);
-      }
-    }
-
-    function boostVolume() {
-      if (player && player.setVolume) {
-        player.unMute();
-        player.setVolume(100);
-        document.getElementById('vol-slider').value = 100;
+      if (player && player.loadVideoById) {
+        player.loadVideoById(id);
       }
     }
 
@@ -509,7 +418,6 @@
     function changeRow(delta) {
       rowNumber = Math.max(0, rowNumber + delta);
       document.getElementById('row-count').innerText = rowNumber;
-      // Persist directly to device memory
       localStorage.setItem('stitchcast_row', rowNumber);
     }
 
@@ -543,92 +451,69 @@
       }
     }
 
-    async function toggleMic() {
+    function toggleMic() {
       if (isListening) {
         stopMic();
       } else {
-        await startMic();
+        startMic();
       }
     }
 
-    async function startMic() {
+    function startMic() {
       const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!Speech) {
-        alert("Voice recognition is not supported in this browser. Please use Chrome, Edge, or Safari.");
+        alert("Voice recognition requires Chrome, Edge, or Safari.");
         return;
       }
 
+      recognition = new Speech();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        isListening = true;
+        document.getElementById('mic-dot').classList.add('active');
+        document.getElementById('mic-label').innerText = "Listening actively";
+        document.getElementById('engine-status').innerText = "Hands-free active";
+        document.getElementById('mic-btn').innerText = "⏹ Stop Voice Control";
+      };
+
+      recognition.onresult = (event) => {
+        let latest = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          latest += event.results[i][0].transcript;
+        }
+        handleVoiceCommand(latest.trim().toLowerCase());
+      };
+
+      recognition.onerror = (e) => {
+        if (e.error !== 'no-speech') {
+          console.warn('Speech notice:', e.error);
+        }
+      };
+
+      recognition.onend = () => {
+        if (isListening) {
+          try { recognition.start(); } catch (err) {}
+        }
+      };
+
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = audioContext.createAnalyser();
-        microphone = audioContext.createMediaStreamSource(stream);
-        microphone.connect(analyser);
-        analyser.fftSize = 64;
-        monitorAudio();
-
-        recognition = new Speech();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = 'en-US';
-
-        recognition.onstart = () => {
-          isListening = true;
-          document.getElementById('mic-dot').classList.add('active');
-          document.getElementById('mic-label').innerText = "Listening actively";
-          document.getElementById('engine-status').innerText = "Hands-free active";
-          document.getElementById('mic-btn').innerText = "⏹ Stop Voice Control";
-        };
-
-        recognition.onresult = (event) => {
-          let latest = '';
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            latest += event.results[i][0].transcript;
-          }
-          handleVoiceCommand(latest.trim().toLowerCase());
-        };
-
-        recognition.onerror = (e) => {
-          if (e.error !== 'no-speech') {
-            console.warn('Speech notice:', e.error);
-          }
-        };
-
-        recognition.onend = () => {
-          if (isListening) {
-            try { recognition.start(); } catch (err) {}
-          }
-        };
-
         recognition.start();
-
       } catch (err) {
-        alert("Microphone permission was denied. Please allow microphone access in your browser settings.");
+        console.error(err);
       }
     }
 
     function stopMic() {
       isListening = false;
       if (recognition) recognition.stop();
-      if (audioContext) audioContext.close();
-      if (animFrame) cancelAnimationFrame(animFrame);
 
       document.getElementById('mic-dot').classList.remove('active');
       document.getElementById('mic-label').innerText = "Mic Standby";
       document.getElementById('engine-status').innerText = "Paused";
       document.getElementById('mic-btn').innerText = "🎙 Start Voice Control";
-      document.getElementById('meter-fill').style.width = '0%';
-    }
-
-    function monitorAudio() {
-      const dataArray = new Uint8Array(analyser.frequencyBinCount);
-      analyser.getByteFrequencyData(dataArray);
-      let sum = 0;
-      for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-      let avg = sum / dataArray.length;
-      document.getElementById('meter-fill').style.width = Math.min(100, avg * 2.5) + '%';
-      if (isListening) animFrame = requestAnimationFrame(monitorAudio);
     }
 
     let lastCommandTime = 0;
@@ -645,7 +530,6 @@
         lastCommandTime = now;
       } else if (cmd.includes("play") || cmd.includes("start") || cmd.includes("continue")) {
         player.playVideo();
-        boostVolume();
         lastCommandTime = now;
       } else if (cmd.includes("rewind") || cmd.includes("back") || cmd.includes("again")) {
         const t = player.getCurrentTime ? player.getCurrentTime() : 0;
@@ -654,9 +538,6 @@
       } else if (cmd.includes("forward") || cmd.includes("ahead")) {
         const t = player.getCurrentTime ? player.getCurrentTime() : 0;
         player.seekTo(t + 10, true);
-        lastCommandTime = now;
-      } else if (cmd.includes("volume up") || cmd.includes("louder") || cmd.includes("max volume")) {
-        boostVolume();
         lastCommandTime = now;
       } else if (cmd.includes("next row") || cmd.includes("new row")) {
         changeRow(1);
