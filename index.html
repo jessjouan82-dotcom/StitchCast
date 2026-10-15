@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>StitchCast - Hands-Free Craft Studio</title>
+  <link rel="icon" type="image/png" href="logo.png">
   <style>
     :root {
       --bg-black: #08080c;
@@ -25,7 +26,7 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: radial-gradient(circle at 50% 0%, #171526 0%, var(--bg-black) 70%);
       color: var(--text-main);
-      padding: 16px 12px;
+      padding: 20px 14px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -36,27 +37,29 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
       text-align: center;
     }
 
     .logo-container {
-      width: 64px;
-      height: 64px;
-      margin-bottom: 8px;
+      width: 110px;
+      height: 110px;
+      margin: 0 auto 12px auto;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    .logo-container svg {
+    .brand-logo {
       width: 100%;
       height: 100%;
-      filter: drop-shadow(0 0 12px rgba(201, 182, 245, 0.25));
+      object-fit: contain;
+      border-radius: 20px;
+      filter: drop-shadow(0 6px 20px rgba(201, 182, 245, 0.22));
     }
 
     h1 {
-      font-size: 1.8rem;
+      font-size: 2rem;
       font-weight: 800;
       letter-spacing: -0.5px;
       background: linear-gradient(135deg, var(--lilac) 0%, var(--pink) 100%);
@@ -66,8 +69,10 @@
 
     .tagline {
       color: var(--text-muted);
-      font-size: 0.85rem;
+      font-size: 0.88rem;
       margin-top: 4px;
+      max-width: 340px;
+      line-height: 1.35;
     }
 
     .app-card {
@@ -75,9 +80,9 @@
       max-width: 620px;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 16px;
+      border-radius: 18px;
       padding: 16px;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
       display: flex;
       flex-direction: column;
       gap: 14px;
@@ -90,7 +95,7 @@
 
     input[type="text"] {
       flex: 1;
-      padding: 11px 14px;
+      padding: 12px 14px;
       border-radius: 10px;
       border: 1px solid var(--card-border);
       background: #0d0c14;
@@ -106,10 +111,10 @@
 
     button {
       font-family: inherit;
-      padding: 10px 14px;
+      padding: 11px 16px;
       border: none;
       border-radius: 10px;
-      font-size: 13.5px;
+      font-size: 14px;
       font-weight: 600;
       cursor: pointer;
       display: inline-flex;
@@ -154,7 +159,7 @@
       gap: 10px;
     }
 
-    /* Counter row */
+    /* Row Counter */
     .row-tracker {
       display: flex;
       align-items: center;
@@ -172,10 +177,10 @@
     }
 
     .tracker-count {
-      font-size: 1.5rem;
+      font-size: 1.6rem;
       font-weight: 800;
       color: var(--pink);
-      min-width: 48px;
+      min-width: 50px;
       text-align: center;
     }
 
@@ -185,14 +190,14 @@
     }
 
     .tracker-btn {
-      width: 34px;
-      height: 34px;
+      width: 36px;
+      height: 36px;
       padding: 0;
       font-size: 18px;
       border-radius: 8px;
     }
 
-    /* Status Indicator */
+    /* Status & Mic Panel */
     .status-panel {
       display: flex;
       flex-direction: column;
@@ -221,7 +226,7 @@
 
     .indicator.active {
       background: var(--pink);
-      box-shadow: 0 0 8px var(--pink);
+      box-shadow: 0 0 10px var(--pink);
     }
 
     .transcript-box {
@@ -249,7 +254,7 @@
     .guide {
       width: 100%;
       max-width: 620px;
-      margin-top: 14px;
+      margin-top: 16px;
       font-size: 0.78rem;
       color: var(--text-muted);
       display: flex;
@@ -272,17 +277,7 @@
 
   <header>
     <div class="logo-container">
-      <!-- Embedded SVG recreation of your logo -->
-      <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Needle -->
-        <path d="M72 136L96 64" stroke="#c9b6f5" stroke-width="7" stroke-linecap="round"/>
-        <circle cx="99" cy="56" r="6" fill="#c9b6f5"/>
-        <!-- Crochet Hook -->
-        <path d="M136 142L166 84C168 80 165 74 158 76C153 77 150 82 153 87" stroke="#f29bb2" stroke-width="7" stroke-linecap="round"/>
-        <!-- Continuous Yarn Thread (Loop Play + Soundwave) -->
-        <path d="M38 72C33 67 42 58 45 68C48 80 62 120 72 124C88 130 114 98 114 98L62 68L70 120" stroke="#c9b6f5" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M114 98C117 108 122 136 126 136C130 136 130 82 136 82C142 82 142 136 148 136C154 136 156 104 162 108" stroke="#f29bb2" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
+      <img src="logo.png" alt="StitchCast Logo" class="brand-logo" onerror="this.src='minimalist-app-icon-logo--a-single-continuous-stra.png'">
     </div>
     <h1>StitchCast</h1>
     <p class="tagline">Hands-free voice remote & left-hand mirror for yarn craft tutorials</p>
@@ -349,7 +344,6 @@
     let rowNumber = 0;
     let audioContext, analyser, microphone, animFrame;
 
-    // Default beginner crochet video
     function onYouTubeIframeAPIReady() {
       player = new YT.Player('player', {
         videoId: 'aAxGTnVNJiE',
@@ -362,7 +356,7 @@
         events: {
           'onReady': () => { isReady = true; },
           'onError': (e) => {
-            alert('Cannot embed this video (Code ' + e.data + '). The creator may have disabled third-party embedding.');
+            alert('Cannot embed this video (Code ' + e.data + '). The creator may have disabled embedding.');
           }
         }
       });
@@ -413,10 +407,8 @@
       }
 
       try {
-        // Unlock mobile microphone permissions explicitly
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-        // Start visual audio meter
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
         analyser = audioContext.createAnalyser();
         microphone = audioContext.createMediaStreamSource(stream);
@@ -452,7 +444,6 @@
         };
 
         recognition.onend = () => {
-          // Restart loop if user hasn't manually pressed stop
           if (isListening) {
             try { recognition.start(); } catch (err) {}
           }
@@ -492,7 +483,6 @@
     function handleVoiceCommand(cmd) {
       document.getElementById('transcript-box').innerText = `Heard: "${cmd}"`;
 
-      // Prevent duplicate triggers in rapid succession (1.2s debounce)
       const now = Date.now();
       if (now - lastCommandTime < 1200) return;
 
