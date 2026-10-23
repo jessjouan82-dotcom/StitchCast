@@ -155,7 +155,7 @@
     /* Giant Hands-Free Elbow / Wrist Tap Zones */
     .handsfree-tap-zone {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 10px;
       margin-top: 2px;
     }
@@ -334,6 +334,11 @@
         <div class="tap-text">Rewind 10s</div>
         <div class="tap-sub">Tap with wrist or elbow</div>
       </div>
+      <div class="tap-box" role="button" tabindex="0" onclick="skipForward()">
+        <div class="tap-icon">10s ↻</div>
+        <div class="tap-text">Skip 10s</div>
+        <div class="tap-sub">Tap with wrist or elbow</div>
+      </div>
       <div class="tap-box" role="button" tabindex="0" onclick="changeRow(1)">
         <div class="tap-icon">+1</div>
         <div class="tap-text">Next Row</div>
@@ -404,6 +409,7 @@
       if (e.target.tagName === 'INPUT' || e.metaKey || e.ctrlKey || e.altKey) return;
       const k = e.key.toLowerCase();
       if (k === 'r') quickRewind();
+      else if (k === 'f') skipForward();
       else if (k === 'n') changeRow(1);
       else if (k === 'b') changeRow(-1);
       else if (k === 'm') toggleMirror();
@@ -519,6 +525,7 @@
       else if (has(/\bnext row\b/)) changeRow(1);
       else if (has(/\b(pause|stop)\b/)) { shouldBePlaying = false; player.pauseVideo(); }
       else if (has(/\b(play|resume|start)\b/)) { shouldBePlaying = true; player.playVideo(); }
+      else if (has(/\b(skip|forward)\b/)) skipForward();
       else if (has(/\b(rewind|back)\b/)) quickRewind();
       else if (has(/\b(slower|slow down)\b/)) changeSpeed(-1);
       else if (has(/\b(faster|speed up)\b/)) changeSpeed(1);
@@ -531,6 +538,14 @@
       if (player && player.getCurrentTime) {
         const t = player.getCurrentTime();
         player.seekTo(Math.max(0, t - 10), true);
+      }
+    }
+
+    function skipForward() {
+      if (player && player.getCurrentTime) {
+        const t = player.getCurrentTime();
+        const max = player.getDuration ? player.getDuration() : Infinity;
+        player.seekTo(Math.min(max || Infinity, t + 10), true);
       }
     }
 

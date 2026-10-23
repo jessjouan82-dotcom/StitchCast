@@ -4,12 +4,12 @@ Hands-free craft studio for following YouTube crochet and knitting tutorials. Mi
 
 ## Features
 - **Left-hand mirror** - flips the video horizontally (remembered between visits)
-- **Voice remote** - say `rewind`, `play`, `pause`, `next row`, `previous row`, `slower`, `faster`, `mirror`
+- **Voice remote** - say `rewind`, `skip`, `play`, `pause`, `next row`, `previous row`, `slower`, `faster`, `mirror`
 - **Wake word (optional)** - require "Stitch" before each command so the tutorial's own narration can't trigger them
 - **Row counter** - saved per video, with reset
 - **Wrist/elbow tap zones** - big targets for rewind 10s and next row
 - **Keep-awake** - screen stays on while the voice remote is active (where supported)
-- **Keyboard shortcuts** - `R` rewind, `N` next row, `B` previous row, `M` mirror
+- **Keyboard shortcuts** - `R` rewind, `F` skip 10s, `N` next row, `B` previous row, `M` mirror
 
 ## Use
 Open `index.html` in a browser (or host it on GitHub Pages), paste a YouTube link, press **Load**. Tap **Voice Remote** and allow the microphone.
