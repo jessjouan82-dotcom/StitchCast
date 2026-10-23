@@ -155,7 +155,7 @@
     /* Giant Hands-Free Elbow / Wrist Tap Zones */
     .handsfree-tap-zone {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 10px;
       margin-top: 2px;
     }
@@ -263,6 +263,15 @@
       box-shadow: 0 0 10px var(--pink);
     }
 
+    .wake-option {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      line-height: 1.3;
+    }
+
     .btn-share {
       background: rgba(201, 182, 245, 0.08);
       color: var(--lilac);
@@ -313,14 +322,24 @@
       </button>
     </div>
 
+    <label class="wake-option">
+      <input type="checkbox" id="wakeword" onchange="setWakeWord(this.checked)" />
+      Require "Stitch" before commands (stops the tutorial's own voice triggering them)
+    </label>
+
     <!-- Hands-Free Wrist/Elbow Touch Zones -->
     <div class="handsfree-tap-zone">
-      <div class="tap-box" onclick="quickRewind()">
+      <div class="tap-box" role="button" tabindex="0" onclick="quickRewind()">
         <div class="tap-icon">↺ 10s</div>
         <div class="tap-text">Rewind 10s</div>
         <div class="tap-sub">Tap with wrist or elbow</div>
       </div>
-      <div class="tap-box" onclick="changeRow(1)">
+      <div class="tap-box" role="button" tabindex="0" onclick="skipForward()">
+        <div class="tap-icon">10s ↻</div>
+        <div class="tap-text">Skip 10s</div>
+        <div class="tap-sub">Tap with wrist or elbow</div>
+      </div>
+      <div class="tap-box" role="button" tabindex="0" onclick="changeRow(1)">
         <div class="tap-icon">+1</div>
         <div class="tap-text">Next Row</div>
         <div class="tap-sub">Tap with wrist or elbow</div>
@@ -335,7 +354,8 @@
       </div>
       <span class="tracker-count" id="row-count">0</span>
       <div class="tracker-actions">
-        <button class="btn-secondary tracker-btn" onclick="changeRow(-1)">−</button>
+        <button class="btn-secondary tracker-btn" onclick="resetRow()" aria-label="Reset row counter" title="Reset">⟲</button>
+        <button class="btn-secondary tracker-btn" onclick="changeRow(-1)" aria-label="Previous row">−</button>
         <button class="btn-secondary tracker-btn" onclick="changeRow(1)">+</button>
       </div>
     </div>
@@ -355,17 +375,44 @@
   <script>
     let player;
     let isReady = false;
-    let isMirrored = false;
     let isListening = false;
     let recognition;
     let shouldBePlaying = false;
+    let wakeLock = null;
+    let micStartedAt = 0;
 
-    let savedRow = localStorage.getItem('stitchcast_row');
-    let rowNumber = savedRow !== null ? parseInt(savedRow, 10) : 0;
-    let currentVideoId = localStorage.getItem('stitchcast_video_id') || 'aAxGTnVNJiE';
+    // localStorage throws in some private-browsing modes; fall back to no-op
+    const store = {
+      get(key) { try { return localStorage.getItem(key); } catch (e) { return null; } },
+      set(key, val) { try { localStorage.setItem(key, val); } catch (e) {} }
+    };
+
+    let currentVideoId = store.get('stitchcast_video_id') || 'aAxGTnVNJiE';
+    let isMirrored = store.get('stitchcast_mirror') === '1';
+    let rowNumber = loadRow();
+    let wakeWordOn = store.get('stitchcast_wakeword') === '1';
+
+    // Row count is stored per video; the old global key is used as a fallback
+    function loadRow() {
+      const saved = store.get('stitchcast_row_' + currentVideoId) ?? store.get('stitchcast_row');
+      const n = parseInt(saved, 10);
+      return Number.isNaN(n) ? 0 : Math.max(0, n);
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('row-count').innerText = rowNumber;
+      document.getElementById('row-count').textContent = rowNumber;
+      document.getElementById('video-url').value = 'https://youtu.be/' + currentVideoId;
+      document.getElementById('wakeword').checked = wakeWordOn;
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.metaKey || e.ctrlKey || e.altKey) return;
+      const k = e.key.toLowerCase();
+      if (k === 'r') quickRewind();
+      else if (k === 'f') skipForward();
+      else if (k === 'n') changeRow(1);
+      else if (k === 'b') changeRow(-1);
+      else if (k === 'm') toggleMirror();
     });
 
     function onYouTubeIframeAPIReady() {
@@ -377,16 +424,19 @@
           'enablejsapi': 1
         },
         events: {
-          'onReady': () => { isReady = true; },
+          'onReady': () => { isReady = true; applyMirror(); },
           'onStateChange': (e) => {
             if (e.data === YT.PlayerState.PLAYING) {
               shouldBePlaying = true;
             } else if (e.data === YT.PlayerState.PAUSED) {
-              // If phone OS paused video just because voice started, resume immediately
-              if (shouldBePlaying && isListening) {
+              // Only resume if the pause came from the OS grabbing the mic, not the user.
+              // A pause within 1.5s of the mic starting is treated as the OS; later ones are the user's.
+              if (shouldBePlaying && isListening && Date.now() - micStartedAt < 1500) {
                 setTimeout(() => {
                   if (player && shouldBePlaying) player.playVideo();
                 }, 150);
+              } else {
+                shouldBePlaying = false;
               }
             }
           }
@@ -407,29 +457,95 @@
         return;
       }
       currentVideoId = id;
-      localStorage.setItem('stitchcast_video_id', currentVideoId);
+      store.set('stitchcast_video_id', currentVideoId);
+      rowNumber = loadRow();
+      document.getElementById('row-count').textContent = rowNumber;
       if (player && player.loadVideoById) {
         player.loadVideoById(id);
       }
     }
 
-    function toggleMirror() {
-      isMirrored = !isMirrored;
+    function applyMirror() {
       const iframe = document.querySelector('.player-box iframe');
       if (iframe) iframe.classList.toggle('is-mirrored', isMirrored);
-      document.getElementById('mirror-btn').innerText = isMirrored ? "Reset Normal View" : "⇄ Mirror (Left-Hand)";
+      document.getElementById('mirror-btn').textContent = isMirrored ? "Reset Normal View" : "⇄ Mirror (Left-Hand)";
+    }
+
+    function toggleMirror() {
+      isMirrored = !isMirrored;
+      store.set('stitchcast_mirror', isMirrored ? '1' : '0');
+      applyMirror();
     }
 
     function changeRow(delta) {
       rowNumber = Math.max(0, rowNumber + delta);
-      document.getElementById('row-count').innerText = rowNumber;
-      localStorage.setItem('stitchcast_row', rowNumber);
+      document.getElementById('row-count').textContent = rowNumber;
+      store.set('stitchcast_row_' + currentVideoId, rowNumber);
+    }
+
+    function resetRow() {
+      if (rowNumber === 0 || confirm('Reset row counter to 0?')) changeRow(-rowNumber);
+    }
+
+    function setWakeWord(on) {
+      wakeWordOn = on;
+      store.set('stitchcast_wakeword', on ? '1' : '0');
+    }
+
+    function changeSpeed(dir) {
+      if (!player || !player.getAvailablePlaybackRates) return;
+      const rates = player.getAvailablePlaybackRates();
+      const i = rates.indexOf(player.getPlaybackRate());
+      const next = rates[Math.min(rates.length - 1, Math.max(0, i + dir))];
+      player.setPlaybackRate(next);
+      document.getElementById('status-hint').textContent = `Speed ${next}x`;
+    }
+
+    // Keep the screen awake while crafting (phones dim and lock mid-row otherwise)
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
+      } catch (e) {}
+    }
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && isListening) requestWakeLock();
+    });
+
+    // Word-boundary matching so "display" doesn't trigger "play".
+    // Returns true if a command was handled.
+    function runCommand(text) {
+      if (wakeWordOn) {
+        const m = text.match(/\bstitch\b(.*)$/);
+        if (!m) return false;
+        text = m[1];
+      }
+      const has = (re) => re.test(text);
+
+      if (has(/\b(previous row|last row|back one row|undo row)\b/)) changeRow(-1);
+      else if (has(/\bnext row\b/)) changeRow(1);
+      else if (has(/\b(pause|stop)\b/)) { shouldBePlaying = false; player.pauseVideo(); }
+      else if (has(/\b(play|resume|start)\b/)) { shouldBePlaying = true; player.playVideo(); }
+      else if (has(/\b(skip|forward)\b/)) skipForward();
+      else if (has(/\b(rewind|back)\b/)) quickRewind();
+      else if (has(/\b(slower|slow down)\b/)) changeSpeed(-1);
+      else if (has(/\b(faster|speed up)\b/)) changeSpeed(1);
+      else if (has(/\b(mirror|flip)\b/)) toggleMirror();
+      else return false;
+      return true;
     }
 
     function quickRewind() {
       if (player && player.getCurrentTime) {
         const t = player.getCurrentTime();
         player.seekTo(Math.max(0, t - 10), true);
+      }
+    }
+
+    function skipForward() {
+      if (player && player.getCurrentTime) {
+        const t = player.getCurrentTime();
+        const max = player.getDuration ? player.getDuration() : Infinity;
+        player.seekTo(Math.min(max || Infinity, t + 10), true);
       }
     }
 
@@ -455,11 +571,15 @@
 
       recognition.onstart = () => {
         isListening = true;
+        micStartedAt = Date.now();
+        requestWakeLock();
         document.getElementById('mic-dot').classList.add('active');
-        document.getElementById('mic-label').innerText = "Voice Active";
-        document.getElementById('status-hint').innerText = "Say 'rewind', 'next row', or 'pause'";
-        document.getElementById('mic-btn').innerText = "⏹ Stop Voice";
-        
+        document.getElementById('mic-label').textContent = "Voice Active";
+        document.getElementById('status-hint').textContent = wakeWordOn
+          ? "Say 'Stitch, next row' / 'rewind' / 'pause'"
+          : "Say 'rewind', 'next row', or 'pause'";
+        document.getElementById('mic-btn').textContent = "⏹ Stop Voice";
+
         // Re-assert video playback so mobile OS doesn't kill it
         if (player && shouldBePlaying) {
           player.playVideo();
@@ -468,27 +588,19 @@
 
       recognition.onresult = (event) => {
         const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
-        document.getElementById('status-hint').innerText = `Heard: "${transcript}"`;
+        document.getElementById('status-hint').textContent = `Heard: "${transcript}"`;
 
         if (!player) return;
-
-        if (transcript.includes("pause") || transcript.includes("stop")) {
-          shouldBePlaying = false;
-          player.pauseVideo();
-        } else if (transcript.includes("play") || transcript.includes("start")) {
-          shouldBePlaying = true;
-          player.playVideo();
-        } else if (transcript.includes("rewind") || transcript.includes("back")) {
-          quickRewind();
-        } else if (transcript.includes("next row")) {
-          changeRow(1);
-        } else if (transcript.includes("mirror") || transcript.includes("flip")) {
-          toggleMirror();
-        }
+        runCommand(transcript);
       };
 
       recognition.onerror = (e) => {
         console.warn("Speech notice:", e.error);
+        // Permission denied / unsupported service: stop instead of restart-looping in onend
+        if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+          stopMic();
+          document.getElementById('status-hint').textContent = "Mic blocked - allow microphone access and retry";
+        }
       };
 
       recognition.onend = () => {
@@ -507,10 +619,11 @@
     function stopMic() {
       isListening = false;
       if (recognition) recognition.stop();
+      if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
       document.getElementById('mic-dot').classList.remove('active');
-      document.getElementById('mic-label').innerText = "Mic Off";
-      document.getElementById('status-hint').innerText = "Voice remote stopped";
-      document.getElementById('mic-btn').innerText = "🎙 Voice Remote";
+      document.getElementById('mic-label').textContent = "Mic Off";
+      document.getElementById('status-hint').textContent = "Voice remote stopped";
+      document.getElementById('mic-btn').textContent = "🎙 Voice Remote";
     }
 
     async function shareApp() {
